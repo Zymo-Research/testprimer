@@ -11,7 +11,7 @@ class Template:
         self.seq = self._seqrecord.seq
         self.description = self._seqrecord.description
         self.id = self._seqrecord.id
-        self.classification = self.description.split(' ', 1)[1].split(';')
+        self.taxonomy = self.description.split(' ', 1)[1].split(';')
 
 
 class Primer(Seq):
