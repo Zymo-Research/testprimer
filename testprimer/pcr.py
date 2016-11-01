@@ -1,5 +1,7 @@
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
+from Bio import SeqIO
+import pandas as pd
 
 
 class Template:
@@ -11,7 +13,7 @@ class Template:
         self.seq = self._seqrecord.seq
         self.description = self._seqrecord.description
         self.id = self._seqrecord.id
-        self.taxonomy = self.description.split(' ', 1)[1].split(';')
+        self.taxonomy = self.description.split(' ', 1)[1]#.split(';')
 
 
 class Primer(Seq):
@@ -106,6 +108,64 @@ class PCR:
 
         is_amplified = fw_match and rv_match
         return PCRMatch(self.template, fw_match, rv_match, is_amplified)
+
+
+class PCRArray:
+
+    def __init__(self, fasta_path, fw_path, rv_path):
+        self._fasta_path = fasta_path
+        self._fw_path = fw_path
+        self._rv_path = rv_path
+
+    def fw_primer_pool(self):
+        '''Assuming primer pool in this format:
+
+        #515f 11895-13861
+        GTGCCAGCAGTCGCGGTAA
+        GTGCCAGCAGGAGCGGTAA
+        GTGCCACCAGCCGCGGTAA
+        GTGCCAGAAGTCTCGGTAA
+        GTGCCAGAAGCGTCGGTAA
+        GTGCCAGAAGCCTCGGTAA
+        GTGCCAGCAGCCGCGGTCA
+        GTGCCAGCAGCCGCGGTGA
+        GTGTCAGCCGCCGCGGTAA
+        GTGCCAGCCGCCGCGGTAA
+        GTGCCAGCAGCTGCGGTAA
+        GTGCCAGCAGCAGCGGTAA
+        GTGCCAGCAGCCGCGGTAA
+        '''
+        with open(self._fw_path, 'r') as handle:
+            lines = [line.strip() for line in handle if line.strip()]
+            header = lines[0].lstrip('#').strip()
+            primers = map(Seq, lines[1:])
+            name, position = header.split()
+            start, end  = map(int, position.split('-'))
+        return PrimerPool(name, start, end, primers)
+
+    def rv_primer_pool(self):
+        with open(self._rv_path, 'r') as handle:
+            lines = [line.strip() for line in handle if line.strip()]
+            header = lines[0].lstrip('#').strip()
+            primers = map(Seq, lines[1:])
+            name, position = header.split()
+            start, end  = map(int, position.split('-'))
+        return PrimerPool(name, start, end, primers)
+
+    def iter(self):
+        for seqrecord in SeqIO.parse(self._fasta_path, 'fasta'):
+            template = Template(seqrecord)
+            fw_primer_pool = self.fw_primer_pool()
+            rv_primer_pool = self.rv_primer_pool()
+            pcr = PCR(template, fw_primer_pool, rv_primer_pool, simple_match)
+            yield pcr.run()
+
+    def to_df(self):
+        data = [pcrmatch.__dict__ for pcrmatch in self.iter()]
+        return pd.DataFrame(data)
+
+    # def to_sql(self, out_dir='/mnt'):
+        # df = self.to_df()
 
 
 def simple_match(seq1, seq2):
