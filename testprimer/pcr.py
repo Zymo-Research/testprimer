@@ -1,3 +1,6 @@
+import os.path
+import sqlite3
+
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 from Bio import SeqIO
@@ -159,8 +162,11 @@ class PCRArray:
         data = [pcrmatch.__dict__ for pcrmatch in self.iter()]
         return pd.DataFrame(data)
 
-    # def to_sql(self, out_dir='/mnt'):
-        # df = self.to_df()
+    def to_sql(self, filename, out_dir='/mnt'):
+        with sqlite3.connect(os.path.join(out_dir, filename)) as conn:
+            df = self.to_df()
+            df.to_sql('testprimer', conn, if_exists='replace', index=False)
+        return
 
 
 def simple_match(seq1, seq2):
