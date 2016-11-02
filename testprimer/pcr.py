@@ -163,8 +163,8 @@ class PCRArray:
         return pd.DataFrame(data)
 
     def to_sql(self, filename, out_dir='/mnt'):
+        df = self.to_df()
         with sqlite3.connect(os.path.join(out_dir, filename)) as conn:
-            df = self.to_df()
             df.to_sql('testprimer', conn, if_exists='replace', index=False)
         return
 
