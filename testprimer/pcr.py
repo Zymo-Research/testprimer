@@ -50,8 +50,9 @@ class PrimerPool:
 
 class PCRMatch:
 
-    def __init__(self, template, fw_match, rv_match, is_amplified):
-        self.template = template
+    def __init__(self, id, taxonomy, fw_match, rv_match, is_amplified):
+        self.id = id
+        self.taxonomy = taxonomy
         self.fw_match = fw_match
         self.rv_match = rv_match
         self.is_amplified = is_amplified
@@ -107,7 +108,8 @@ class PCR:
             rv_match = False
 
         is_amplified = fw_match and rv_match
-        return PCRMatch(self.template, fw_match, rv_match, is_amplified)
+        return PCRMatch(self.template.id, self.template.taxonomy, 
+                        fw_match, rv_match, is_amplified)
 
 
 class PCRArray:
@@ -127,13 +129,6 @@ class PCRArray:
         GTGCCAGAAGTCTCGGTAA
         GTGCCAGAAGCGTCGGTAA
         GTGCCAGAAGCCTCGGTAA
-        GTGCCAGCAGCCGCGGTCA
-        GTGCCAGCAGCCGCGGTGA
-        GTGTCAGCCGCCGCGGTAA
-        GTGCCAGCCGCCGCGGTAA
-        GTGCCAGCAGCTGCGGTAA
-        GTGCCAGCAGCAGCGGTAA
-        GTGCCAGCAGCCGCGGTAA
         '''
         with open(self._fw_path, 'r') as handle:
             lines = [line.strip() for line in handle if line.strip()]
