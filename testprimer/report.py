@@ -1,63 +1,46 @@
 from __future__ import division
 import os.path
 import sqlite3
+from collections import defaultdict, Counter
 
 import pandas as pd
 
 
 class Analysis:
 
-    def __init__(self, sqlpath, get_stats):
-        self._sqlpath = sqlpath
-        self._get_stats = get_stats
-        if not os.path.exists(self._sqlpath):
+    def __init__(self, sql_path, analyzer):
+        if not os.path.exists(sql_path):
             raise
+        self._sql_path = sql_path
+        self._analyzer = analyzer
 
-    def df(self):
-        with sqlite3.connect(self._sqlpath) as conn:
-            df = pd.read_sql("SELECT * FROM testprimer;", conn)
-        return df
+        with sqlite3.connect(self._sql_path) as conn:
+            self.df = pd.read_sql("SELECT * FROM testprimer;", conn)
 
-    def process(self):
-        pass
+    def execute(self):
+        result = self._analyzer.run(self.df)
+        return self._analyzer.filter(result)
+
+
+class TaxaCoverage:
+
+    def run(self, df):
+        data = defaultdict(Counter)
+        for index, r in df.iterrows():
+            is_amplified = bool(r['is_amplified'])
+            taxa = r['taxonomy'].split(';')
+            for i in range(len(taxa)):
+                taxon = ';'.join(taxa[:i+1])
+                data[taxon].update([is_amplified])
         
+        coverage = pd.DataFrame(data).T.fillna(0).reset_index() \
+                     .rename(columns={'index':'taxonomy', True:'match', False:'mismatch'})
+        coverage['coverage'] = coverage['match'] / (coverage['match'] + coverage['mismatch'])
+        return coverage
 
-def taxa_coverage(df):
-    from collections import defaultdict, Counter
-
-    d = defaultdict(Counter)
-    for index, r in df.iterrows():
-        is_amplified = bool(r['is_amplified'])
-        taxa = r['taxonomy'].split(';')
-        for i in range(len(taxa)):
-            taxon = ';'.join(taxa[:i+1])
-            d[taxon].update([is_amplified])
-    return d
-
-
-# class SQLParser:
-
-    # def __init__(self, sql_path):
-        # self.sql_path = sql_path
-
-    # def parse(self):
-        # with sqlite3.connect(self.sql_path) as conn:
-            # df = pd.read_sql("SELECT * FROM testprimer;", conn)
-        # return df
-
-
-# class Analysis:
-
-    # def __init__(self, df):
-        # self._df = df
-
-    # @property
-    # def coverage(self):
-        # d = defaultdict(Counter)
-        # for i, r in df.iterrows():
-            # is_amplified = bool(r['is_amplified'])
-            # ranks = r['taxonomy'].split(';')
-            # for i in range(len(ranks)):
-                # rank = ';'.join(ranks[:i+1])
-                # d[rank].update([is_amplified])
-        # return d
+    def filter(self, coverage):
+        """Result filter
+        
+        Only display phylum level coverage report.
+        """
+        return coverage[coverage['taxonomy'].str.count(';')==1]
