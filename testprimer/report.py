@@ -12,8 +12,8 @@ class Analysis:
     Parameters
     ----------
     sql_path : str
-        SQL path containing in silico PCR result. Table must include columns
-        'id', 'fw_match', 'rv_match', 'is_amplified' and 'taxonomy'.
+        Path to SQL file containing in silico PCR result. Table must include
+        columns 'id', 'fw_match', 'rv_match', 'is_amplified' and 'taxonomy'.
     analyzer : Analyzer
         Analyzer must have methods 'run', 'filter' and 'output'.
     out_dir : str
@@ -22,7 +22,7 @@ class Analysis:
     Attributes
     ----------
     df : pandas.DataFrame
-        Table 'testprimer' from in silico PCR SQL.
+        Table 'testprimer' from SQL file.
     """
 
     def __init__(self, sql_path, analyzer, out_dir):
@@ -58,7 +58,7 @@ class TaxaCoverage:
         return coverage
 
     def filter(self, coverage):
-        """Result filter
+        """Result selector.
         
         Only display domain level, phylum level and human disease related
         pathogen coverage.
