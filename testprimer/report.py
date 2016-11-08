@@ -60,7 +60,8 @@ class TaxaCoverage:
     def filter(self, coverage):
         """Result filter
         
-        Only display domain level coverage and phylum level coverage.
+        Only display domain level, phylum level and human disease related
+        pathogen coverage.
         """
         domain = coverage[coverage['taxonomy'].str.count(';')==0]
         phylum = coverage[coverage['taxonomy'].str.count(';')==1]
@@ -69,12 +70,30 @@ class TaxaCoverage:
         genus = coverage[(coverage['taxonomy'].str.startswith('Bacteria')) & (coverage['taxonomy'].str.count(';')==5)]
         with open('pathogens.txt', 'r') as handle:
             pathogenlist = map(lambda x: x.strip(), handle.readlines())
-        # for candidate in pathogenlist:
-            # pass
-        return [domain, phylum]
+
+        data = defaultdict(list)
+        for candidate in pathogenlist:
+            row = genus[genus['taxonomy'].str.endswith(candidate)]
+            data['pathogen'].append(candidate)
+            
+            if row.shape[0] != 0:    
+                data['taxonomy'].append(row.iloc[0]['taxonomy'])
+                data['mismatch'].append(row.iloc[0]['mismatch'])
+                data['match'].append(row.iloc[0]['match'])
+                data['coverage'].append(row.iloc[0]['coverage'])
+            else:
+                data['taxonomy'].append(None)
+                data['mismatch'].append(None)
+                data['match'].append(None)
+                data['coverage'].append(None)
+        pathogen = pd.DataFrame(data, columns=['pathogen', 'taxonomy', 'mismatch', 'match', 'coverage'])
+
+        return [domain, phylum, pathogen]
 
     def output(self, filtered, out_dir):
         writer = pd.ExcelWriter(os.path.join(out_dir, 'coverage.xlsx'))
+        domain, phylum, pathogen = filtered
         domain.to_excel(writer, 'domain', index=False)
         phylum.to_excel(writer, 'phylum', index=False)
+        pathogen.to_excel(writer, 'pathogen', index=False)
         writer.save()
