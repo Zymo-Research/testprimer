@@ -64,6 +64,13 @@ class TaxaCoverage:
         """
         domain = coverage[coverage['taxonomy'].str.count(';')==0]
         phylum = coverage[coverage['taxonomy'].str.count(';')==1]
+
+        # human disease related pathogens
+        genus = coverage[(coverage['taxonomy'].str.startswith('Bacteria')) & (coverage['taxonomy'].str.count(';')==5)]
+        with open('pathogens.txt', 'r') as handle:
+            pathogenlist = map(lambda x: x.strip(), handle.readlines())
+        # for candidate in pathogenlist:
+            # pass
         return [domain, phylum]
 
     def output(self, filtered, out_dir):
