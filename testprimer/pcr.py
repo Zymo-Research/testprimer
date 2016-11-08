@@ -8,6 +8,24 @@ import pandas as pd
 
 
 class Template:
+    """PCR template.
+
+    Parameters
+    ----------
+    seqrecord : Bio.SeqRecord
+        Mostly used with element in Bio.SeqIO.parse iterator.
+
+    Attributes
+    ----------
+    seq : Bio.Seq
+        Unambiguous DNA/RNA sequence. Gap supported.
+    description : str
+        FASTA header line.
+    id : str
+        Unique sequence identifier.
+    taxonomy : str
+        Semicolon-separated, hierarchical taxonomic classification.
+    """
 
     def __init__(self, seqrecord):
         if not isinstance(seqrecord, SeqRecord):
@@ -20,16 +38,33 @@ class Template:
 
 
 class Primer(Seq):
-    '''A copy of Seq class'''
+    """PCR primer.
+    
+    A copy of Bio.Seq class.
+    """
     pass
     
 
 class PrimerPool:
+    """PCR primer pool.
+
+    A collection of DNA primers for one strand. Must share the same
+    starting and ending coordinates.
+    
+    Parameters
+    ----------
+    name : str
+        Primer pool name.
+    start : int
+        1-based genomic coordinate indicating where the primer starts.
+    end : int
+        1-based genomic coordinate indicating where the primer ends.
+    primers : list of Primer or list of Seq, or None, default None
+        Primers for one strand. Specified upon instance creation or by
+        instance method later.
+    """
 
     def __init__(self, name, start, end, primers=None):
-        '''
-        start, end is 1-based
-        '''
         self.name = name
         self.start = start
         self.end = end
@@ -42,6 +77,27 @@ class PrimerPool:
                 self.primers = primers
 
     def parse(self, seqs_str):
+        """Function to add/update primers.
+
+        Add primers to primer pool by parsing the given string in which
+        primers are separated by line break. If primers already exist,
+        they will be replaced.
+
+        Parameters
+        ----------
+        seqs_str : str
+            Primers formatted in one string separated by '\n'.   
+
+        Examples
+        --------
+        GTGCCAGCAGTCGCGGTAA
+        GTGCCAGCAGGAGCGGTAA
+        GTGCCACCAGCCGCGGTAA
+        GTGCCAGAAGTCTCGGTAA
+        GTGCCAGAAGCGTCGGTAA
+        GTGCCAGAAGCCTCGGTAA
+        """
+
         self.primers = []
         for seq in seqs_str.strip().split('\n'):
             self.primers.append(Primer(seq.strip()))
@@ -62,6 +118,23 @@ class PCRMatch:
 
 
 class PCR:
+    """in silico PCR.
+    
+    Simulate PCR on a template sequence with forward primer pool and reverse
+    primer pool following certain rules defining primer/template match.
+
+    Parameters
+    ----------
+    template : Template
+        PCR template. Support gapped/ungapped DNA/RNA sequence.
+    fw_primer_pool : PrimerPool
+        Forward primer pool containing one or multiple primers.
+    rv_primer_pool : PrimerPool
+        Reverse primer pool containing one or multiple primers.
+    find_match : function
+        Function to determine if primer could bind to template. Only
+        return boolean value.
+    """
 
     def __init__(self, template, fw_primer_pool, rv_primer_pool, find_match):
         if not isinstance(template, Template):
@@ -86,6 +159,10 @@ class PCR:
         return self.template.seq[start:end]
 
     def run(self):
+        """Run in silico PCR.
+
+        """
+
         GAP = '-'  # gap placeholder
         UNKNOWN = '.'  # leading and trailing placeholder 
 
