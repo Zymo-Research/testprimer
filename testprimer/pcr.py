@@ -248,3 +248,13 @@ class PCRArray:
 
 def simple_match(seq1, seq2):
     return seq1.upper() == seq2.upper() 
+
+
+def pcr(fasta_path, fw_path, rv_path, filename, out_dir):
+    '''Main module entrance
+
+    '''
+
+    pcrarray = PCRArray(fasta_path, fw_path, rv_path)
+    pcrarray.to_sql(filename, out_dir)
+    return

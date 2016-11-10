@@ -1,29 +1,31 @@
+#!/usr/bin/env python
+
 # from __future__ import absolute_import
+import os
+import sys
+import argparse
 
-# from pcr import PCRArray
-# from report import Analysis, TaxaCoverage
-
-
-# def main(fasta_path, fw_path, rv_path, taxa_coverage, out_dir):
-    # pcrarray = PCRArray(fasta_path, fw_path, rv_path)
-    # pcrarray.to_sql('filename.sql', out_dir)
-
-    # if taxa_coverage:
-        # taxa_analyzer = TaxaAnalyzer()
-        # analysis = Analysis(sql_path, taxa_analyzer, out_dir)
-        # analysis.execute()
+# from pcr import pcr
+# from report import report
 
 
-if __name__ == '__main__':
-    import sys
-    import argparse
-
+def main():
     parser = argparse.ArgumentParser(
         description="Zymo's internal utility to evaluate the performance of \
                      primer pools by running in silico PCR on the given \
                      microbial database."
     )
-    subparsers = parser.add_subparsers(help='sub-command help')
+    subparsers = parser.add_subparsers(
+        dest='subcommand',
+        help='sub-command help'
+    )
+ 
+    # parser.add_argument(
+        # '-o',
+        # dest='out_dir',
+        # metavar='',
+        # help='Directory file outputs to.'
+    # )
 
     pcr_parser = subparsers.add_parser(
         'pcr',
@@ -58,7 +60,7 @@ if __name__ == '__main__':
         dest='taxa_coverage',
         # metavar='',
         action='store_true',
-        default=False,
+        # default=False,
         help='Perform taxa coverage analysis jointly after in silico PCR is \
               complete and output result in Excel format.'
     )
@@ -66,6 +68,7 @@ if __name__ == '__main__':
         '-o',
         dest='out_dir',
         metavar='',
+        default=os.getcwd(),
         help='Directory file outputs to.'
     )
 
@@ -83,10 +86,10 @@ if __name__ == '__main__':
     )
     report_parser.add_argument(
         '--coverage',
-        dest='analyzer',
+        dest='taxa_coverage',
         # metavar='',
         action='store_true',
-        default=False,
+        # default=False,
         help='Flag to perform taxa coverage analysis and output result in \
               Excel format.'
     )
@@ -94,6 +97,7 @@ if __name__ == '__main__':
         '-o',
         dest='out_dir',
         metavar='',
+        default=os.getcwd(),
         help='Directory file outputs to.'
     )
 
@@ -108,8 +112,24 @@ if __name__ == '__main__':
             report_parser.print_help()
             sys.exit(1)
         else:
+            # Python automatically prints argparse's built-in error message
+            # for wrong subcommands.
             pass
     else:
         pass
 
     args = parser.parse_args()
+
+    if args.subcommand == 'pcr':
+        print args
+        # filename = 'something'
+        # pcr(args.fasta_path, args,fw_path, args.rv_path, filename, args.out_dir)
+    elif args.subcommand == 'report':
+        pass
+    else:
+        pass
+
+
+if __name__ == '__main__':
+    main()
+
