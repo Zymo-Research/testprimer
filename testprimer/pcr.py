@@ -239,7 +239,7 @@ class PCRArray:
         data = [pcrmatch.__dict__ for pcrmatch in self.iter()]
         return pd.DataFrame(data)
 
-    def to_sql(self, filename, out_dir='/mnt'):
+    def to_sql(self, filename, out_dir):
         df = self.to_df()
         with sqlite3.connect(os.path.join(out_dir, filename)) as conn:
             df.to_sql('testprimer', conn, if_exists='replace', index=False)
@@ -248,7 +248,3 @@ class PCRArray:
 
 def simple_match(seq1, seq2):
     return seq1.upper() == seq2.upper() 
-
-
-if __name__ == '__main__':
-    pass

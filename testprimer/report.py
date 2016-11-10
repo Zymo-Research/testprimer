@@ -43,6 +43,8 @@ class Analysis:
 
 class TaxaCoverage:
 
+    OUTPUT_FILENAME = 'coverage.xlsx'
+
     def run(self, df):
         data = defaultdict(Counter)
         for index, r in df.iterrows():
@@ -91,7 +93,7 @@ class TaxaCoverage:
         return [domain, phylum, pathogen]
 
     def output(self, filtered, out_dir):
-        writer = pd.ExcelWriter(os.path.join(out_dir, 'coverage.xlsx'))
+        writer = pd.ExcelWriter(os.path.join(out_dir, OUTPUT_FILENAME))
         domain, phylum, pathogen = filtered
         domain.to_excel(writer, 'domain', index=False)
         phylum.to_excel(writer, 'phylum', index=False)
