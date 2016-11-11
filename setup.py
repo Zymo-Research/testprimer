@@ -3,14 +3,14 @@ import re
 import codecs
 
 from setuptools import setup, find_packages
-from pip.req import parse_requirements
+# from pip.req import parse_requirements
 
 
-requirements = parse_requirements(
-    os.path.join(os.path.dirname(__file__), 'requirements.txt'),
-    session='hack'
-)
-INSTALL_REQUIRES = [str(req.req) for req in requirements] 
+# requirements = parse_requirements(
+    # os.path.join(os.path.dirname(__file__), 'requirements.txt'),
+    # session='hack'
+# )
+# INSTALL_REQUIRES = [str(req.req) for req in requirements] 
 
 def find_version(*file_paths):
     # inspired by pip repository
@@ -40,5 +40,10 @@ setup(
             'testprimer=testprimer.cli:main',
         ],
     },
-    install_requires=INSTALL_REQUIRES,
+    install_requires=[
+        'pandas',
+        'biopython',
+        'openpyxl',
+    ],
 )
+

@@ -1,6 +1,8 @@
 from __future__ import division
+
 import os.path
 import sqlite3
+import ConfigParser
 from collections import defaultdict, Counter
 
 import pandas as pd
@@ -69,9 +71,19 @@ class TaxaCoverage:
         phylum = coverage[coverage['taxonomy'].str.count(';')==1]
 
         # human disease related pathogens
+        configpath = os.path.join(
+            os.path.expanduser('~'),
+            '.testprimer',
+            'config'
+        )
+        config = ConfigParser.ConfigParser()
+        config.read(configpath)
+        try:
+            pathogenlist = config.get('TaxaCoverage', 'pathogens').strip().split(',')
+        except (ConfigParser.NoSectionError, ConfigParser.NoOptionError) as e:
+            raise e
+
         genus = coverage[(coverage['taxonomy'].str.startswith('Bacteria')) & (coverage['taxonomy'].str.count(';')==5)]
-        with open(os.path.join(os.path.dirname(__file__), 'pathogens.txt'), 'r') as handle:
-            pathogenlist = map(lambda x: x.strip(), handle.readlines())
         data = defaultdict(list)
         for candidate in pathogenlist:
             row = genus[genus['taxonomy'].str.endswith(candidate)]
