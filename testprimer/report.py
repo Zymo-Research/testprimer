@@ -72,12 +72,10 @@ class TaxaCoverage:
         genus = coverage[(coverage['taxonomy'].str.startswith('Bacteria')) & (coverage['taxonomy'].str.count(';')==5)]
         with open(os.path.join(os.path.dirname(__file__), 'pathogens.txt'), 'r') as handle:
             pathogenlist = map(lambda x: x.strip(), handle.readlines())
-
         data = defaultdict(list)
         for candidate in pathogenlist:
             row = genus[genus['taxonomy'].str.endswith(candidate)]
-            data['pathogen'].append(candidate)
-            
+            data['pathogen'].append(candidate) 
             if row.shape[0] != 0:    
                 data['taxonomy'].append(row.iloc[0]['taxonomy'])
                 data['mismatch'].append(row.iloc[0]['mismatch'])
