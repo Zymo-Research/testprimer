@@ -251,9 +251,7 @@ def simple_match(seq1, seq2):
 
 
 def pcr(fasta_path, fw_path, rv_path, filename, out_dir):
-    '''Main module entrance
-
-    '''
+    '''Main module entrance'''
 
     pcrarray = PCRArray(fasta_path, fw_path, rv_path)
     pcrarray.to_sql(filename, out_dir)

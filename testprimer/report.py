@@ -25,25 +25,25 @@ class Analysis:
         Table 'testprimer' from SQL file.
     """
 
-    def __init__(self, sql_path, analyzer, out_dir):
+    def __init__(self, sql_path, out_dir, analyzer=None):
         if not os.path.exists(sql_path):
             raise
         self._sql_path = sql_path
-        self._analyzer = analyzer
         self.out_dir = out_dir
+        self.analyzer = analyzer
 
         with sqlite3.connect(self._sql_path) as conn:
             self.df = pd.read_sql("SELECT * FROM testprimer;", conn)
 
     def execute(self):
-        result = self._analyzer.run(self.df)
-        filtered = self._analyzer.filter(result)
-        return self._analyzer.output(filtered, self.out_dir)
+        if not self.analyzer:
+            raise
+        result = self.analyzer.run(self.df)
+        filtered = self.analyzer.filter(result)
+        return self.analyzer.output(filtered, self.out_dir)
 
 
 class TaxaCoverage:
-
-    OUTPUT_FILENAME = 'coverage.xlsx'
 
     def run(self, df):
         data = defaultdict(Counter)
@@ -70,7 +70,7 @@ class TaxaCoverage:
 
         # human disease related pathogens
         genus = coverage[(coverage['taxonomy'].str.startswith('Bacteria')) & (coverage['taxonomy'].str.count(';')==5)]
-        with open('pathogens.txt', 'r') as handle:
+        with open(os.path.join(os.path.dirname(__file__), 'pathogens.txt'), 'r') as handle:
             pathogenlist = map(lambda x: x.strip(), handle.readlines())
 
         data = defaultdict(list)
@@ -93,9 +93,22 @@ class TaxaCoverage:
         return [domain, phylum, pathogen]
 
     def output(self, filtered, out_dir):
-        writer = pd.ExcelWriter(os.path.join(out_dir, OUTPUT_FILENAME))
+        writer = pd.ExcelWriter(os.path.join(out_dir, 'coverage.xlsx'))
         domain, phylum, pathogen = filtered
         domain.to_excel(writer, 'domain', index=False)
         phylum.to_excel(writer, 'phylum', index=False)
         pathogen.to_excel(writer, 'pathogen', index=False)
         writer.save()
+        return
+
+
+def report(sql_path, out_dir, taxa_coverage):
+    '''Main module entrance '''
+
+    analysis = Analysis(sql_path, out_dir)
+
+    if taxa_coverage:
+        analysis.analyzer = TaxaCoverage()
+        analysis.execute()
+
+    return
