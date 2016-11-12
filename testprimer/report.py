@@ -76,6 +76,8 @@ class TaxaCoverage:
             '.testprimer',
             'config'
         )
+        if not os.path.isfile(configpath):
+            raise
         config = ConfigParser.ConfigParser()
         config.read(configpath)
         try:
