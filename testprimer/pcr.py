@@ -160,7 +160,7 @@ class PCR:
             rv_match = False
 
         is_amplified = fw_match and rv_match
-        return PCRMatch(self.template.id, self.template.taxonomy, 
+        return PCRMatch(self.template.id, self.template.taxonomy,
                         fw_match, rv_match, is_amplified)
 
 
@@ -173,7 +173,9 @@ class PCRArray:
 
     @staticmethod
     def parse_primer_pool(path):
-        '''Assuming primer pool in this format:
+        """Parse file containing primer pool.
+
+        Assuming primers stored in this format:
 
         #515f 11895-13861
         GTGCCAGCAGTCGCGGTAA
@@ -182,7 +184,7 @@ class PCRArray:
         GTGCCAGAAGTCTCGGTAA
         GTGCCAGAAGCGTCGGTAA
         GTGCCAGAAGCCTCGGTAA
-        '''
+        """
 
         with open(path, 'r') as handle:
             lines = [line.strip() for line in handle if line.strip()]

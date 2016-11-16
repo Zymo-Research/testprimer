@@ -8,7 +8,7 @@ import unittest
 from Bio import SeqIO
 from Bio.Seq import Seq
 
-from testprimer.pcr import Template, Primer, PrimerPool, PCRArray
+from testprimer.pcr import Template, Primer, PrimerPool, PCRArray, simple_match
 
 
 class TestTemplate(unittest.TestCase):
@@ -109,6 +109,38 @@ class TestPCRArray(unittest.TestCase):
         self.assertTrue(
             isinstance(self.pcrarray.iter(), types.GeneratorType)
         )
+
+    def test_to_df(self):
+        result = self.pcrarray.to_df()
+        self.assertEqual(result["fw_match"].tolist(),
+                         [False, False, False, False])
+        self.assertEqual(result["rv_match"].tolist(),
+                         [False, False, True, True])
+        self.assertEqual(result["is_amplified"].tolist(),
+                         [False, False, False, False])
+        self.assertEqual(result["id"].tolist(), ["GAXI01000525.151.1950", 
+                                                 "GAXI01000526.151.1950",
+                                                 "GAXI01005455.1.1233",
+                                                 "GAXI01006199.29.1525"])
+        self.assertEqual(
+            result["taxonomy"].tolist(),
+            ["Eukaryota;Opisthokonta;Holozoa;Metazoa (Animalia);Eumetazoa;Bilateria;Arthropoda;Hexapoda;Ellipura;Collembola;Tetrodontophora bielanensis (giant springtail)",
+             "Eukaryota;Opisthokonta;Holozoa;Metazoa (Animalia);Eumetazoa;Bilateria;Arthropoda;Hexapoda;Ellipura;Collembola;Tetrodontophora bielanensis (giant springtail)",
+             "Bacteria;Bacteroidetes;Flavobacteriia;Flavobacteriales;Flavobacteriaceae;Chryseobacterium;Tetrodontophora bielanensis (giant springtail)",
+             "Bacteria;Chlamydiae;Chlamydiae;Chlamydiales;Simkaniaceae;Candidatus Rhabdochlamydia;Tetrodontophora bielanensis (giant springtail)"]
+        )
+
+    def test_to_sql(self):
+        pass
+
+
+class TestMatch(unittest.TestCase):
+
+    def test_simple_match(self):
+        self.assertTrue(simple_match('AA', 'AA'))
+        self.assertTrue(simple_match('aa', 'aa'))
+        self.assertTrue(simple_match('Aa', 'AA'))
+        self.assertTrue(simple_match('aa', 'AA'))
 
 
 if __name__ == '__main__':
