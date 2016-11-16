@@ -214,7 +214,8 @@ class PCRArray:
     def to_sql(self, filename, out_dir):
         df = self.to_df()
         with sqlite3.connect(os.path.join(out_dir, filename)) as conn:
-            df.to_sql('testprimer', conn, if_exists='replace', index=False)
+            df.to_sql('testprimer', conn, if_exists='replace',
+                      index=False)
         return
 
 
