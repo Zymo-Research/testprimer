@@ -1,19 +1,16 @@
-#!/usr/bin/env python
 """Command line interface(CLI).
 
 Command line interface for testprimer.
 """
 
-from __future__ import print_function
-# from __future__ import absolute_import
+from __future__ import print_function, absolute_import
 
 import os
 import sys
 import argparse
-import logging
 
-from pcr import pcr
-from report import report
+from testprimer.pcr import pcr
+from testprimer.report import report
 
 
 def main():
@@ -110,10 +107,10 @@ def main():
         sys.exit(0)
 
     if len(sys.argv) == 2:
-        if sys.argv[1] == pcr_parser.prog.split()[1]:
+        if sys.argv[1] == 'pcr':
             pcr_parser.print_help()
             sys.exit(0)
-        elif sys.argv[1] == report_parser.prog.split()[1]:
+        elif sys.argv[1] == 'report':
             report_parser.print_help()
             sys.exit(0)
         else:
@@ -147,15 +144,24 @@ def main():
         else:
             filename = args.filename
             
-        pcr(args.fasta_path, args.fw_path, args.rv_path, filename, args.out_dir)
-        report(os.path.join(args.out_dir, filename), args.out_dir, args.taxa_coverage)
+        try:
+            pcr(args.fasta_path, args.fw_path, args.rv_path, filename, args.out_dir)
+            report(os.path.join(args.out_dir, filename), args.out_dir, args.taxa_coverage)
+        except KeyboardInterrupt:
+            print("Error: Execution aborted.")
+            sys.exit(1)
 
     if args.subcommand == 'report':
         if not os.path.isfile(args.sql_path):
             print("Error: SQL file '%s' does not exist." % args.sql_path)
             sys.exit(1)
 
-        report(args.sql_path, args.out_dir, args.taxa_coverage)
+        try:
+            report(args.sql_path, args.out_dir, args.taxa_coverage)
+        except KeyboardInterrupt as e:
+            print("Error: Execution aborted.")
+            sys.exit(1)
+        
 
 
 if __name__ == '__main__':
