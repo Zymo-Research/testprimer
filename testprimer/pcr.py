@@ -34,7 +34,7 @@ class Template:
         self.seq = self._seqrecord.seq
         self.description = self._seqrecord.description
         self.id = self._seqrecord.id
-        self.taxonomy = self.description.split(' ', 1)[1]#.split(';')
+        self.taxonomy = self.description.split(' ', 1)[1]
 
 
 class Primer(Seq):
@@ -64,43 +64,19 @@ class PrimerPool:
         instance method later.
     """
 
-    def __init__(self, name, start, end, primers=None):
+    def __init__(self, name, start, end, primers):
+        if not isinstance(start, int):
+            raise TypeError
+        if not isinstance(end, int):
+            raise TypeError
+        if not isinstance(primers, list):
+            raise TypeError
+        if any(map(lambda x: not isinstance(x, Primer), primers)):
+            raise TypeError
         self.name = name
         self.start = start
         self.end = end
-        if not primers:
-            self.primers = primers
-        else:
-            if not isinstance(primers, list):
-                raise TypeError
-            else:
-                self.primers = primers
-
-    def parse(self, seqs_str):
-        """Function to add/update primers.
-
-        Add primers to primer pool by parsing the given string in which
-        primers are separated by line break. If primers already exist,
-        they will be replaced.
-
-        Parameters
-        ----------
-        seqs_str : str
-            Primers formatted in one string separated by '\n'.   
-
-        Examples
-        --------
-        GTGCCAGCAGTCGCGGTAA
-        GTGCCAGCAGGAGCGGTAA
-        GTGCCACCAGCCGCGGTAA
-        GTGCCAGAAGTCTCGGTAA
-        GTGCCAGAAGCGTCGGTAA
-        GTGCCAGAAGCCTCGGTAA
-        """
-
-        self.primers = []
-        for seq in seqs_str.strip().split('\n'):
-            self.primers.append(Primer(seq.strip()))
+        self.primers = primers
 
 
 class PCRMatch:
@@ -195,7 +171,8 @@ class PCRArray:
         self._fw_path = fw_path
         self._rv_path = rv_path
 
-    def fw_primer_pool(self):
+    @staticmethod
+    def parse_primer_pool(path):
         '''Assuming primer pool in this format:
 
         #515f 11895-13861
@@ -206,29 +183,28 @@ class PCRArray:
         GTGCCAGAAGCGTCGGTAA
         GTGCCAGAAGCCTCGGTAA
         '''
-        with open(self._fw_path, 'r') as handle:
+
+        with open(path, 'r') as handle:
             lines = [line.strip() for line in handle if line.strip()]
             header = lines[0].lstrip('#').strip()
-            primers = map(Seq, lines[1:])
+            primers = map(Primer, lines[1:])
             name, position = header.split()
             start, end  = map(int, position.split('-'))
         return PrimerPool(name, start, end, primers)
 
+    @property
+    def fw_primer_pool(self):
+        return PCRArray.parse_primer_pool(self._fw_path)
+
+    @property
     def rv_primer_pool(self):
-        with open(self._rv_path, 'r') as handle:
-            lines = [line.strip() for line in handle if line.strip()]
-            header = lines[0].lstrip('#').strip()
-            primers = map(Seq, lines[1:])
-            name, position = header.split()
-            start, end  = map(int, position.split('-'))
-        return PrimerPool(name, start, end, primers)
+        return PCRArray.parse_primer_pool(self._rv_path)
 
     def iter(self):
         for seqrecord in SeqIO.parse(self._fasta_path, 'fasta'):
             template = Template(seqrecord)
-            fw_primer_pool = self.fw_primer_pool()
-            rv_primer_pool = self.rv_primer_pool()
-            pcr = PCR(template, fw_primer_pool, rv_primer_pool, simple_match)
+            pcr = PCR(template, self.fw_primer_pool,
+                      self.rv_primer_pool, simple_match)
             yield pcr.run()
 
     def to_df(self):
