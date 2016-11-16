@@ -103,10 +103,6 @@ class PrimerPool:
             self.primers.append(Primer(seq.strip()))
 
 
-# class AmplificationError(Exception):
-    # pass
-
-
 class PCRMatch:
 
     def __init__(self, id, taxonomy, fw_match, rv_match, is_amplified):
