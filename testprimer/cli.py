@@ -9,8 +9,8 @@ import os
 import sys
 import argparse
 
-from testprimer.pcr import pcr
-from testprimer.report import report
+from pcr import pcr
+from report import report
 
 
 def main():
