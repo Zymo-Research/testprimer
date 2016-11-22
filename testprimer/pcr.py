@@ -225,9 +225,42 @@ def simple_match(seq1, seq2):
     return seq1.upper() == seq2.upper() 
 
 
+def _get_generator(fasta_path, fw_path, rv_path):
+    pcrarray = PCRArray(fasta_path, fw_path, rv_path)
+    return pcrarray.iter()
+
+
+def f(x):
+    # print "*"
+    return x.__dict__
+
+
+@profile
 def pcr(fasta_path, fw_path, rv_path, filename, out_dir):
     '''Main module entrance'''
+    import multiprocessing as mp
+    import itertools
 
-    pcrarray = PCRArray(fasta_path, fw_path, rv_path)
-    pcrarray.to_sql(filename, out_dir)
+    pool = mp.Pool()
+    generator = _get_generator(fasta_path, fw_path, rv_path)
+    data = pool.map(f, generator)
+
+    # pool = mp.Pool()
+    # generator = _get_generator(fasta_path, fw_path, rv_path)
+    # data = [] 
+    # while True:
+        # tmp = pool.map(f, itertools.islice(_get_generator(fasta_path, fw_path, rv_path), 10))
+        # if tmp:
+            # data.extend(tmp)
+        # else:
+            # break
+
+    df = pd.DataFrame(data)
+    with sqlite3.connect(os.path.join(out_dir, filename)) as conn:
+        df.to_sql('testprimer', conn, if_exists='replace',
+                  index=False)
     return
+    
+    # pcrarray = PCRArray(fasta_path, fw_path, rv_path)
+    # pcrarray.to_sql(filename, out_dir)
+    # return

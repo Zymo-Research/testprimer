@@ -7,3 +7,5 @@ pandas==0.19.1
 python-dateutil==2.6.0
 pytz==2016.7
 six==1.10.0
+
+bumpversion==0.5.3
