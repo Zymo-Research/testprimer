@@ -235,7 +235,6 @@ def f(x):
     return x.__dict__
 
 
-@profile
 def pcr(fasta_path, fw_path, rv_path, filename, out_dir):
     '''Main module entrance'''
     import multiprocessing as mp
